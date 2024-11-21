@@ -1,0 +1,12 @@
+[
+    { "id": 1, "nombre": "Christopher Nolan", "nacionalidad": "Británico", "peliculasDirigidas": ["Inception", "Dunkirk"] },
+    { "id": 2, "nombre": "Lana Wachowski", "nacionalidad": "Americana", "peliculasDirigidas": ["The Matrix", "Cloud Atlas"] },
+    { "id": 3, "nombre": "Lilly Wachowski", "nacionalidad": "Americana", "peliculasDirigidas": ["The Matrix", "Cloud Atlas"] },
+    { "id": 4, "nombre": "Steven Spielberg", "nacionalidad": "Americano", "peliculasDirigidas": ["Jurassic Park", "E.T."] },
+    { "id": 5, "nombre": "Martin Scorsese", "nacionalidad": "Americano", "peliculasDirigidas": ["Goodfellas", "Taxi Driver"] },
+    { "id": 6, "nombre": "Quentin Tarantino", "nacionalidad": "Americano", "peliculasDirigidas": ["Pulp Fiction", "Kill Bill"] },
+    { "id": 7, "nombre": "James Cameron", "nacionalidad": "Canadiense", "peliculasDirigidas": ["Avatar", "Titanic"] },
+    { "id": 8, "nombre": "David Fincher", "nacionalidad": "Americano", "peliculasDirigidas": ["Fight Club", "The Social Network"] },
+    { "id": 9, "nombre": "Ridley Scott", "nacionalidad": "Británico", "peliculasDirigidas": ["Alien", "Gladiator"] },
+    { "id": 10, "nombre": "Pedro Almodóvar", "nacionalidad": "Español", "peliculasDirigidas": ["Talk to Her", "Volver"] }
+]

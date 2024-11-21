@@ -1,0 +1,12 @@
+[
+    { "id": 1, "titulo": "Inception", "director": "Christopher Nolan", "año": 2010, "genero": "Ciencia ficción" },
+    { "id": 2, "titulo": "The Matrix", "director": "Lana Wachowski, Lilly Wachowski", "año": 1999, "genero": "Acción" },
+    { "id": 3, "titulo": "Interstellar", "director": "Christopher Nolan", "año": 2014, "genero": "Ciencia ficción" },
+    { "id": 4, "titulo": "The Godfather", "director": "Francis Ford Coppola", "año": 1972, "genero": "Crimen" },
+    { "id": 5, "titulo": "Pulp Fiction", "director": "Quentin Tarantino", "año": 1994, "genero": "Crimen" },
+    { "id": 6, "titulo": "Fight Club", "director": "David Fincher", "año": 1999, "genero": "Drama" },
+    { "id": 7, "titulo": "The Dark Knight", "director": "Christopher Nolan", "año": 2008, "genero": "Acción" },
+    { "id": 8, "titulo": "Forrest Gump", "director": "Robert Zemeckis", "año": 1994, "genero": "Drama" },
+    { "id": 9, "titulo": "The Shawshank Redemption", "director": "Frank Darabont", "año": 1994, "genero": "Drama" },
+    { "id": 10, "titulo": "Schindler's List", "director": "Steven Spielberg", "año": 1993, "genero": "Drama" }
+]
