@@ -1,10 +1,11 @@
 import path from 'path';
-import peliculasRoutes from './parcial1/routes/peliculasRoutes.js';
-import directoresRoutes from './parcial1/routes/directoresRoutes.js';
+import peliculasRoutes from './routes/peliculasRoutes.js';
+import directoresRoutes from './routes/directoresRoutes.js';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import express from 'express';
-import Pelicula from './parcial1/models/pelicula.js';  
+import Pelicula from './models/pelicula.js'; 
+import Director from './models/director.js'; 
 
 dotenv.config();
 

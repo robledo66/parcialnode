@@ -1,145 +1,102 @@
-// controllers/peliculasController.js
-
-import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-
-dotenv.config();
-
-// Ruta al archivo JSON de películas
-const filePath = path.resolve('parcial1/data/peliculas.json');
-
-// Función para leer las películas desde el archivo JSON
-const readPeliculasfile = () => {
-   
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-};
+import Pelicula from "../models/pelicula.js";
 
 // Obtener todas las películas
-const obtenerPeliculas = (req, res) => {
+export const obtenerPeliculas = async (req, res) => {
+  try {
     const { genero, año, nombre, ordenarPor, orden, pagina = 1, limite = 10 } = req.query;
-    let peliculas = readPeliculasfile(); // Leer las películas del archivo
+    let query = {};
 
     // Filtrado por género
     if (genero) {
-        peliculas = peliculas.filter(pelicula => pelicula.genero.toLowerCase() === genero.toLowerCase());
+      query.genero = genero;
     }
-      
+
     // Filtrado por año
     if (año) {
-        peliculas = peliculas.filter(pelicula => pelicula.año === parseInt(año));
+      query.año = parseInt(año);
     }
+
+    // Filtrado por nombre
     if (nombre) {
-        peliculas = peliculas.filter(pelicula => 
-            pelicula.titulo.toLowerCase().includes(nombre.toLowerCase())
-        );
+      query.titulo = { $regex: nombre, $options: "i" }; // Búsqueda insensible a mayúsculas
     }
-   // Ordenamiento
-if (ordenarPor) {
-    peliculas.sort((a, b) => {
-        let valA = a[ordenarPor];
-        let valB = b[ordenarPor];
 
-        // Convertir a string para comparación, pero solo si son números
-        if (typeof valA === 'number') {
-            valA = valA.toString();
-        }
-        if (typeof valB === 'number') {
-            valB = valB.toString();
-        }
-
-        if (orden === 'asc') {
-            return valA < valB ? -1 : valA > valB ? 1 : 0;
-        } else { // 'desc'
-            return valA > valB ? -1 : valA < valB ? 1 : 0;
-        }
-    });
-}
-
+    // Configuración del ordenamiento
+    const sort = {};
+    if (ordenarPor) {
+      sort[ordenarPor] = orden === "desc" ? -1 : 1;
+    }
 
     // Paginado
-    const total = peliculas.length;
-    const inicio = (pagina - 1) * limite;
-    const paginadas = peliculas.slice(inicio, inicio + limite);
+    const skip = (pagina - 1) * limite;
+    const peliculas = await Pelicula.find(query).sort(sort).skip(skip).limit(parseInt(limite));
+
+    // Total de documentos
+    const total = await Pelicula.countDocuments(query);
 
     res.status(200).json({
-        total,
-        pagina: parseInt(pagina),
-        limite: parseInt(limite),
-        peliculas: paginadas
+      total,
+      pagina: parseInt(pagina),
+      limite: parseInt(limite),
+      peliculas,
     });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener las películas", error });
+  }
 };
 
 // Obtener una película por ID
-const obtenerPeliculaPorId = (req, res) => {
-    const id = parseInt(req.params.id);
-    const peliculas = readPeliculasfile(); // Leer las películas del archivo
-    const pelicula = peliculas.find(p => p.id === id);
-
-    if (pelicula) {
-        res.status(200).json(pelicula);
-    } else {
-        res.status(404).json({ mensaje: 'Película no encontrada' });
+export const obtenerPeliculaPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pelicula = await Pelicula.findById(id);
+    if (!pelicula) {
+      return res.status(404).json({ message: "Película no encontrada" });
     }
+    res.status(200).json(pelicula);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener la película", error });
+  }
 };
 
 // Agregar una nueva película
-const agregarPelicula = (req, res) => {
-    const { titulo, director, año, genero } = req.body;
-    const peliculas = readPeliculasfile(); // Leer las películas del archivo
-    const nuevaPelicula = {
-        id: peliculas.length + 1,
-        titulo,
-        director,
-        año,
-        genero
-    };
-    peliculas.push(nuevaPelicula);
-    
-    // Guardar el nuevo array de películas en el archivo JSON
-    fs.writeFileSync(filePath, JSON.stringify(peliculas, null, 2));
-
-    res.status(201).json({ mensaje: 'Película agregada con éxito', pelicula: nuevaPelicula });
+export const agregarPelicula = async (req, res) => {
+  try {
+    const nuevaPelicula = new Pelicula(req.body);
+    await nuevaPelicula.save();
+    res.status(201).json({ message: "Película agregada con éxito", pelicula: nuevaPelicula });
+  } catch (error) {
+    res.status(400).json({ message: "Error al agregar la película", error });
+  }
 };
 
 // Actualizar una película por su ID
-const actualizarPelicula = (req, res) => {
-    const id = parseInt(req.params.id);
-    const peliculas = readPeliculasfile(); // Leer las películas del archivo
-    const pelicula = peliculas.find(p => p.id === id);
-
-    if (pelicula) {
-        const { titulo, director, año, genero } = req.body;
-
-        if (titulo) pelicula.titulo = titulo;
-        if (director) pelicula.director = director;
-        if (año) pelicula.año = año;
-        if (genero) pelicula.genero = genero;
-
-        // Guardar el array actualizado de películas en el archivo JSON
-        fs.writeFileSync(filePath, JSON.stringify(peliculas, null, 2));
-
-        res.status(200).json({ mensaje: 'Película actualizada con éxito', pelicula });
-    } else {
-        res.status(404).json({ mensaje: 'Película no encontrada' });
+export const actualizarPelicula = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const peliculaActualizada = await Pelicula.findByIdAndUpdate(id, req.body, {
+      new: true, // Devuelve el documento actualizado
+      runValidators: true, // Valida antes de actualizar
+    });
+    if (!peliculaActualizada) {
+      return res.status(404).json({ message: "Película no encontrada" });
     }
+    res.status(200).json(peliculaActualizada);
+  } catch (error) {
+    res.status(400).json({ message: "Error al actualizar la película", error });
+  }
 };
 
-// Eliminar una película por su ID
-const eliminarPelicula = (req, res) => {
-    const id = parseInt(req.params.id);
-    let peliculas = readPeliculasfile(); // Leer las películas del archivo
-    const index = peliculas.findIndex(p => p.id === id);
-
-    if (index !== -1) {
-        peliculas.splice(index, 1);
-        // Guardar el array actualizado de películas en el archivo JSON
-        fs.writeFileSync(filePath, JSON.stringify(peliculas, null, 2));
-        res.status(204).send();
-    } else {
-        res.status(404).json({ mensaje: 'Película no encontrada' });
+// Eliminar una película por ID
+export const eliminarPelicula = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const peliculaEliminada = await Pelicula.findByIdAndDelete(id);
+    if (!peliculaEliminada) {
+      return res.status(404).json({ message: "Película no encontrada" });
     }
+    res.status(200).json({ message: "Película eliminada exitosamente" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar la película", error });
+  }
 };
-
-// Exportación de las funciones individualmente
-export { obtenerPeliculas, obtenerPeliculaPorId, agregarPelicula, actualizarPelicula, eliminarPelicula };

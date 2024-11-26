@@ -1,85 +1,95 @@
-// controllers/directoresController.js
-
-import fs from 'fs';
-import path from 'path';
-
-const filePath = path.resolve('parcial1/data/directores.json');
-
-// Función para leer el archivo JSON de directores
-const readDirectoresFile = () => {
-  
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-};
-
-// Función para escribir en el archivo JSON de directores
-
+import Director from '../models/director.js'; // Asegúrate de que el modelo esté en la ruta correcta
+import mongoose from 'mongoose';
 // Obtener todos los directores
-const obtenerDirectores = (req, res) => {
-    const directores = readDirectoresFile();
-    res.status(200).json(directores);
+const obtenerDirectores = async (req, res) => {
+    try {
+        const directores = await Director.find(); // Usamos Mongoose para obtener todos los directores
+        res.status(200).json(directores);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener los directores', error });
+    }
 };
 
 // Obtener un director por ID
-const obtenerDirectorPorId = (req, res) => {
-    const id = parseInt(req.params.id);
-    const directores = readDirectoresFile();
-    const director = directores.find(d => d.id === id);
+const obtenerDirectorPorId = async (req, res) => {
+    const { id } = req.params;
 
-    if (director) {
-        res.status(200).json(director);
-    } else {
-        res.status(404).json({ mensaje: 'Director no encontrado' });
+    // Verificar si el id es un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ mensaje: 'ID inválido' });
+    }
+
+    try {
+        const director = await Director.findById(id);  // Buscar el director por ID
+        if (director) {
+            res.status(200).json(director);
+        } else {
+            res.status(404).json({ mensaje: 'Director no encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener el director', error });
     }
 };
 
 // Agregar un nuevo director
-const agregarDirector = (req, res) => {
+const agregarDirector = async (req, res) => {
     const { nombre, nacionalidad, peliculasDirigidas } = req.body;
-    const directores = readDirectoresFile();
-    const nuevoDirector = {
-        id: directores.length + 1,
-        nombre,
-        nacionalidad,
-        peliculasDirigidas
-    };
-    directores.push(nuevoDirector);
-    writeDirectoresFile(directores);
-    res.status(201).json({ mensaje: 'Director agregado con éxito', director: nuevoDirector });
+    try {
+        const nuevoDirector = new Director({
+            nombre,
+            nacionalidad,
+            peliculasDirigidas
+        });
+        await nuevoDirector.save(); // Guardamos el nuevo director en la base de datos
+        res.status(201).json({ mensaje: 'Director agregado con éxito', director: nuevoDirector });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al agregar el director', error });
+    }
 };
 
 // Actualizar un director
-const actualizarDirector = (req, res) => {
-    const id = parseInt(req.params.id);
-    const directores = readDirectoresFile();
-    const director = directores.find(d => d.id === id);
+const actualizarDirector = async (req, res) => {
+    const { id } = req.params;
+    const { nombre, nacionalidad, peliculasDirigidas } = req.body;
+    try {
+        const director = await Director.findById(id); // Buscamos el director por ID
+        if (director) {
+            if (nombre) director.nombre = nombre;
+            if (nacionalidad) director.nacionalidad = nacionalidad;
+            if (peliculasDirigidas) director.peliculasDirigidas = peliculasDirigidas;
 
-    if (director) {
-        const { nombre, nacionalidad, peliculasDirigidas } = req.body;
-        if (nombre) director.nombre = nombre;
-        if (nacionalidad) director.nacionalidad = nacionalidad;
-        if (peliculasDirigidas) director.peliculasDirigidas = peliculasDirigidas;
-
-        writeDirectoresFile(directores);
-        res.status(200).json({ mensaje: 'Director actualizado con éxito', director });
-    } else {
-        res.status(404).json({ mensaje: 'Director no encontrado' });
+            await director.save(); // Guardamos los cambios en la base de datos
+            res.status(200).json({ mensaje: 'Director actualizado con éxito', director });
+        } else {
+            res.status(404).json({ mensaje: 'Director no encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar el director', error });
     }
 };
 
 // Eliminar un director
-const eliminarDirector = (req, res) => {
-    const id = parseInt(req.params.id);
-    const directores = readDirectoresFile();
-    const indice = directores.findIndex(d => d.id === id);
+const eliminarDirector = async (req, res) => {
+    const { id } = req.params;
 
-    if (indice !== -1) {
-        directores.splice(indice, 1);
-        writeDirectoresFile(directores);
-        res.status(204).send();
-    } else {
-        res.status(404).json({ mensaje: 'Director no encontrado' });
+    // Verificar si el ID es un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ mensaje: 'ID inválido' });
+    }
+
+    try {
+        const director = await Director.findByIdAndDelete(id); // Eliminar el director por ID
+        if (director) {
+            res.status(204).send(); // El director fue encontrado y eliminado
+        } else {
+            res.status(404).json({ mensaje: 'Director no encontrado' }); // No se encontró el director
+        }
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar el director', error });
     }
 };
+
+
 
 // Exportación de las funciones
 export { obtenerDirectores, obtenerDirectorPorId, agregarDirector, actualizarDirector, eliminarDirector };
